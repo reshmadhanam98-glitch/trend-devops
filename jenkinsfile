@@ -3,28 +3,34 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "reshmadocker98/trend-app"
-        IMAGE_TAG = "latest"
+        IMAGE_NAME = "reshmadocker98/trend-app2"
+        IMAGE_TAG  = "latest"
     }
 
     stages {
 
-        stage('Checkout Code') {
-            steps {
-                git branch: 'main',
-                url: 'https://github.com/reshmadhanam98-glitch/Trend-DevOps.git'
-            }
-        }
-
-
         stage('Build Docker Image') {
             steps {
-                sh '''
-                docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
-                '''
+                sh 'docker build -t $IMAGE_NAME:$IMAGE_TAG .'
             }
         }
 
+        stage('Test Docker Credentials') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-creds',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )
+                ]) {
+                    sh '''
+                        echo "Username: $DOCKER_USER"
+                        echo "Password length: ${#DOCKER_PASS}"
+                    '''
+                }
+            }
+        }
 
         stage('Docker Login and Push') {
             steps {
@@ -35,15 +41,14 @@ pipeline {
                         passwordVariable: 'DOCKER_PASS'
                     )
                 ]) {
-
                     sh '''
-                   echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
-                   docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                        printf "%s" "$DOCKER_PASS" | docker login -u reshmadocker98 --password-stdin
+
+                        docker push ${IMAGE_NAME}:${IMAGE_TAG}
                     '''
                 }
             }
         }
-
 
         stage('Deploy to EKS') {
             steps {
@@ -53,13 +58,27 @@ pipeline {
                         variable: 'KUBECONFIG'
                     )
                 ]) {
-
                     sh '''
-                    kubectl apply -f deployment.yaml
-                    kubectl apply -f service.yaml
+                        kubectl apply -f deployment.yaml
+                        kubectl apply -f service.yaml
                     '''
                 }
             }
+        }
+    }
+
+    post {
+
+        always {
+            echo 'Pipeline execution completed.'
+        }
+
+        success {
+            echo 'Application deployed successfully!'
+        }
+
+        failure {
+            echo 'Pipeline failed. Please check the console output.'
         }
     }
 }
