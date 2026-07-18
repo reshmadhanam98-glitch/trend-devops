@@ -42,7 +42,7 @@ pipeline {
                     )
                 ]) {
                     sh '''
-                        printf "%s" "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        printf "%s" "$DOCKER_PASS" | docker login -u reshmadocker98 --password-stdin
 
                         docker push ${IMAGE_NAME}:${IMAGE_TAG}
                     '''
