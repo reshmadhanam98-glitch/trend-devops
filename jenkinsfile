@@ -41,7 +41,7 @@ pipeline {
                     )
                 ]) {
                     sh '''
-                        printf "%s" "$DOCKER_PASS" | docker login -u reshmadocker98 --password-stdin
+                        printf "%s" "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
 
                         docker push ${IMAGE_NAME}:${IMAGE_TAG}
                     '''
@@ -56,11 +56,10 @@ pipeline {
                         credentialsId: 'kubectl',
                         variable: 'KUBECONFIG'
                     ),
-                    usernamePassword(
-                        credentialsId: 'aws-creds',
-                        usernameVariable: 'AWS_ACCESS_KEY_ID',
-                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
-                    )
+                    [
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: 'aws-creds'
+                    ]
                 ]) {
                     sh '''
                         export AWS_DEFAULT_REGION=ap-south-1
@@ -70,6 +69,7 @@ pipeline {
                         kubectl get nodes
 
                         kubectl apply -f deployment.yaml
+
                         kubectl apply -f service.yaml
                     '''
                 }
