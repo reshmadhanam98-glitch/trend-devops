@@ -24,6 +24,23 @@ pipeline {
             }
         }
 
+        stage('Test Docker Credentials') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-creds',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )
+                ]) {
+                    sh '''
+                        echo "Username: $DOCKER_USER"
+                        echo "Password length: ${#DOCKER_PASS}"
+                    '''
+                }
+            }
+        }
+
         stage('Docker Login and Push') {
             steps {
                 withCredentials([
@@ -34,7 +51,7 @@ pipeline {
                     )
                 ]) {
                     sh '''
-                        echo "$DOCKER_PASS" | docker login -u Reshmadocker98 --password-stdin
+                        printf "%s" "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                         docker push ${IMAGE_NAME}:${IMAGE_TAG}
                     '''
                 }
@@ -62,9 +79,11 @@ pipeline {
         always {
             echo 'Pipeline execution completed.'
         }
+
         success {
             echo 'Application deployed successfully!'
         }
+
         failure {
             echo 'Pipeline failed. Please check the console output.'
         }
