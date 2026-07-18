@@ -58,6 +58,14 @@ pipeline {
                     kubectl apply -f deployment.yaml
                     kubectl apply -f service.yaml
                     '''
+       stage('Build Docker Image') {
+          steps {
+        sh '''
+        export DOCKER_BUILDKIT=0
+        docker build -t reshmadocker98/trend-app2:latest .
+        '''
+    }
+}
                 }
             }
         }
