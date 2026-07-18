@@ -1,5 +1,4 @@
 pipeline {
-
     agent any
 
     environment {
@@ -56,10 +55,25 @@ pipeline {
                     file(
                         credentialsId: 'kubectl',
                         variable: 'KUBECONFIG'
-                    )
+                    ),
+                    [
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: 'aws-creds'
+                    ]
                 ]) {
                     sh '''
+                        export AWS_DEFAULT_REGION=ap-south-1
+
+                        aws sts get-caller-identity
+
+                        aws eks list-clusters --region ap-south-1
+
+                        kubectl config current-context
+
+                        kubectl get nodes
+
                         kubectl apply -f deployment.yaml
+
                         kubectl apply -f service.yaml
                     '''
                 }
@@ -68,7 +82,6 @@ pipeline {
     }
 
     post {
-
         always {
             echo 'Pipeline execution completed.'
         }
