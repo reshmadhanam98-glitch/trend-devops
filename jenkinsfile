@@ -41,7 +41,7 @@ pipeline {
                     )
                 ]) {
                     sh '''
-                        printf "%s" "$DOCKER_PASS" | docker login -u reshmadocker98 --password-stdin
+                        printf "%s" "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
 
                         docker push ${IMAGE_NAME}:${IMAGE_TAG}
                     '''
@@ -65,6 +65,10 @@ pipeline {
                         export AWS_DEFAULT_REGION=ap-south-1
 
                         aws sts get-caller-identity
+
+                        aws eks list-clusters --region ap-south-1
+
+                        kubectl config current-context
 
                         kubectl get nodes
 
