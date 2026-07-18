@@ -4,6 +4,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = "reshmadocker98/trend-app"
+        IMAGE_TAG = "latest"
     }
 
     stages {
@@ -19,7 +20,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh '''
-                docker build -t reshmadocker98/trend-app .
+                docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
                 '''
             }
         }
@@ -36,8 +37,8 @@ pipeline {
                 ]) {
 
                     sh '''
-                    docker login -u $DOCKER_USER -p $DOCKER_PASS
-                    docker push $IMAGE_NAME
+                   echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
+                   docker push ${IMAGE_NAME}:${IMAGE_TAG}
                     '''
                 }
             }
@@ -48,7 +49,7 @@ pipeline {
             steps {
                 withCredentials([
                     file(
-                        credentialsId: 'eks-kubeconfig',
+                        credentialsId: 'kubectl',
                         variable: 'KUBECONFIG'
                     )
                 ]) {
