@@ -1,11 +1,7 @@
 node_modules/
-
-.env
-
-*.log
-
+dist/
 .terraform/
-
 terraform.tfstate
-
 terraform.tfstate.backup
+*.pem
+.env
